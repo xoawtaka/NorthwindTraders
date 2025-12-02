@@ -44,10 +44,10 @@ public class App {
 
                 System.out.printf("%-10d %-10s %10.2f %10d%n", id, name, price, stock);
 
-                while(true) {
+                while (true) {
                     int choice = HomeScreen();
 
-                    switch(choice) {
+                    switch (choice) {
                         case 1 -> displayAllProducts(theConnection);
                         case 2 -> displayAllCustomers(theConnection);
                         case 0 -> System.exit(0);
@@ -58,22 +58,79 @@ public class App {
             }
 
             //closing mysql workbench
-           // theConnection.close();
+            theConnection.close();
 
         } catch (SQLException e) {
             System.out.println("Error " + e);
         }
 
-
     }
 
     private static void displayAllProducts(Connection theConnection) {
 
+        //query for products
+        String query1 = """
+                SELECT ProductID, ProductName, UnitPrice, UnitsInStock 
+                FROM Products;
+                """;
+        try (Statement statement = theConnection.createStatement();
+             ResultSet results = statement.executeQuery(query1)) {
+
+            System.out.println("""
+                       ID  |   Name    |    Price    |   InStock
+                    ---------------------------------------------
+                    """);
+            // processing the info
+            while (results.next()) {
+                int id = results.getInt("ProductID");
+                String name = results.getString("ProductName");
+                double price = results.getDouble("UnitPrice");
+                int stock = results.getInt("UnitsInStock");
+
+                System.out.printf("%-10d %-10s %10.2f %10d%n", id, name, price, stock);
+
+            }
+
+
+        } catch (SQLException e) {
+            System.out.println("Sorry ;-; couldn't load products: " + e.getMessage());
+        }
     }
 
     private static void displayAllCustomers(Connection theConnection) {
+        // query for all customer
+        String query2 = """
+                SELECT ContactName, CompanyName, City, Country, Phone
+                FROM Customers
+                ORDER BY Country;
+                """;
+        // try with resources - best practice
+        try (Statement statement = theConnection.createStatement();
+             ResultSet results = statement.executeQuery(query2)) {
 
+            //organization sout
+            System.out.println("""
+                    Contact Name         | Company              | City           | Country       | Phone
+                    -----------------------------------------------------------------------------------
+                    """);
+
+            // executing the query
+            while (results.next()) {
+                String contact = results.getString("ContactName");
+                String company = results.getString("CompanyName");
+                String city = results.getString("City");
+                String country = results.getString("Country");
+                String phone = results.getString("Phone");
+
+                System.out.printf("%-15s %-15s %-15s %-15s %-15s%n",
+                        contact, company, city, country, phone);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Sorry ;-; couldn't load products: " + e.getMessage());
+        }
     }
+
 
     private static int HomeScreen() {
         Scanner scanner = new Scanner(System.in);
@@ -82,12 +139,11 @@ public class App {
                 1) Display all products
                 2) Display all customers
                 0) Exit
-                Select an option\n:
+                Select an option:
                 """);
 
         return scanner.nextInt();
     }
-
 
 }
 
